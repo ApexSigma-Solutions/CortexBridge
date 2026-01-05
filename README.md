@@ -1,72 +1,68 @@
 # CortexBridge
 
-The Executive Control Plane for the ApexSigma Ecosystem.
+The **Executive Control Plane** for the ApexSigma Omega Ecosystem.
 
-CortexBridge is a React-based dashboard application that monitors and controls three API services: Omega, InGest, and Memos.
+CortexBridge is a React-based dashboard application that monitors and controls the three core services:
+- **Omega_KG**: AI Conversation Capture & Knowledge Graph.
+- **InGest-LLM**: Intelligent Data Ingestion Pipeline.
+- **memos.MCP**: Working Memory & Context Retrieval (The "Second Brain").
 
-## Features
+## ✨ Features
 
-- **Modern Tech Stack**: Built with React 19, TypeScript, and Vite
-- **Tailwind CSS**: Styled with a custom ApexSigma theme using CSS variables
-- **API Management**: Monitors three APIs (Omega:8765, InGest:8766, Memos:8768)
-- **Health Monitoring**: Real-time health polling for all connected APIs
-- **State Management**: Zustand store for system state
-- **Responsive Layout**: Dashboard layout with collapsible sidebar
-- **UI Components**: Reusable Card and Badge components with Lucide icons
+- **Modern Tech Stack**: React 19, TypeScript, Vite 7, Tailwind 4.
+- **Real-time Monitoring**: Live health checks and queue status for all services.
+- **Authentication**: JWT-ready login flow with protected routes.
+- **Ingestion Playground**: Multi-tab interface for Text, Repo, and File ingestion.
+- **Semantic Search**: Query the knowledge graph directly from the UI.
+- **Toast Notifications**: User feedback for all async actions.
+- **Performance**: Code-splitting with `React.lazy` for fast initial load.
+- **Loading Skeletons**: Smooth perceived performance during navigation.
+- **ApexSigma Theme**: Dark/Light mode with brand-aligned design tokens.
 
-## Project Structure
+## 📂 Project Structure
 
 ```
 CortexBridge/
 ├── src/
 │   ├── components/
+│   │   ├── features/
+│   │   │   ├── capture/      # CaptureControl, CaptureStatus, RecentCaptures
+│   │   │   ├── ingest/       # IngestControl, IngestStatus, IngestPlayground
+│   │   │   └── memos/        # MemosControl, MemosStatus, MemosSearch, MemosScratchpad
 │   │   ├── layout/
-│   │   │   └── DashboardLayout.tsx    # Main layout with sidebar
-│   │   ├── ui/
-│   │   │   ├── Card.tsx               # Card component
-│   │   │   └── Badge.tsx              # Badge component
-│   │   └── Dashboard.tsx              # Main dashboard view
+│   │   │   └── DashboardLayout.tsx
+│   │   ├── pages/
+│   │   │   └── LoginPage.tsx
+│   │   ├── ui/               # Button, Card, Badge, Input, Tabs, Toast, Skeleton
+│   │   └── Dashboard.tsx
 │   ├── lib/
 │   │   ├── api/
-│   │   │   ├── client.ts              # API client
-│   │   │   └── healthPoller.ts        # Health monitoring
+│   │   │   ├── client.ts     # omegaClient, ingestClient, memosClient + typed APIs
+│   │   │   └── healthPoller.ts
 │   │   └── store/
-│   │       └── systemStore.ts         # Zustand state store
-│   ├── App.tsx
+│   │       ├── systemStore.ts   # Theme, sidebar state
+│   │       ├── useAuthStore.ts  # Authentication state
+│   │       └── useToastStore.ts # Toast notifications
+│   ├── App.tsx               # Lazy routing, Suspense, ToastContainer
 │   ├── main.tsx
-│   └── index.css                      # Tailwind + ApexSigma theme
-├── tailwind.config.js                 # Tailwind configuration
-├── postcss.config.js
-├── vite.config.ts
+│   └── index.css             # Tailwind & ApexSigma theme
 └── package.json
 ```
 
-## Getting Started
+## 🚀 Getting Started
 
 ### Prerequisites
-
-- Node.js (v18 or later)
-- npm or yarn
+- Node.js v20+
+- npm
 
 ### Installation
-
-1. Clone the repository:
 ```bash
-git clone https://github.com/ApexSigma-Solutions/CortexBridge.git
 cd CortexBridge
-```
-
-2. Install dependencies:
-```bash
 npm install
 ```
 
-3. Configure environment variables (optional):
-```bash
-cp .env.example .env
-```
-
-Edit `.env` to configure API endpoints:
+### Environment Variables
+Create a `.env` file (copy from `.env.example`):
 ```env
 VITE_API_OMEGA_URL=http://localhost:8765
 VITE_API_INGEST_URL=http://localhost:8766
@@ -74,45 +70,37 @@ VITE_API_MEMOS_URL=http://localhost:8768
 ```
 
 ### Development
-
-Start the development server:
 ```bash
 npm run dev
 ```
-
-The application will be available at `http://localhost:5173`
+Access at `http://localhost:5173`. Default login: any email/password.
 
 ### Build
-
-Build for production:
 ```bash
 npm run build
-```
-
-Preview the production build:
-```bash
 npm run preview
 ```
 
-## API Configuration
+### Testing
+```bash
+npm run test
+```
 
-CortexBridge monitors three APIs:
+## 🔌 API Integration
 
-- **Omega API** (Port 8765): Configure with `VITE_API_OMEGA_URL`
-- **InGest API** (Port 8766): Configure with `VITE_API_INGEST_URL`
-- **Memos API** (Port 8768): Configure with `VITE_API_MEMOS_URL`
+| Service | Port | API Object | Key Endpoints |
+|---------|------|------------|---------------|
+| Omega   | 8765 | `captureApi` | `/health`, `/capture`, `/capture/recent` |
+| InGest  | 8766 | `ingestApi` | `/ingest/text`, `/ingest/file`, `/ingest/queue` |
+| Memos   | 8768 | `memosApi` | `/memos/stats`, `/memos/search`, `/memos/scratch` |
 
-Each API is expected to have a `/health` endpoint that returns health status.
+## 🎨 Theme
 
-## Theme
+Configured in `index.css`. Based on ApexSigma Brand Guidelines.
+- **Primary**: Boston Blue
+- **Secondary**: Calypso
+- **Backgrounds**: Deep Navy (dark) / Gray Nurse (light)
 
-The application uses the ApexSigma theme with CSS variables for easy customization. Colors can be modified in `src/index.css`:
+## 📖 License
 
-- Primary colors (Blue)
-- Secondary colors (Slate)
-- Accent colors (Cyan)
-- Status colors (Success, Warning, Error, Info)
-
-## License
-
-See [LICENSE](LICENSE) file for details.
+See [LICENSE](LICENSE).

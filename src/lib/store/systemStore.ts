@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { devtools, persist } from 'zustand/middleware';
 import { ApiHealth } from '@/lib/api/client';
 
 interface SystemState {
@@ -9,43 +10,80 @@ interface SystemState {
   // UI State
   sidebarCollapsed: boolean;
   toggleSidebar: () => void;
+  theme: 'light' | 'dark';
+  setTheme: (theme: 'light' | 'dark') => void;
+  toggleTheme: () => void;
 
   // System Info
   systemStatus: 'online' | 'degraded' | 'offline';
   updateSystemStatus: () => void;
 }
 
-export const useSystemStore = create<SystemState>((set, get) => ({
-  // API Health State
-  apiHealth: [],
-  setApiHealth: (health) => {
-    set({ apiHealth: health });
-    get().updateSystemStatus();
-  },
+export const useSystemStore = create<SystemState>()(
+  devtools(
+    persist(
+      (set, get) => ({
+        // API Health State
+        apiHealth: [],
+        setApiHealth: (health) => {
+          set({ apiHealth: health }, false, 'setApiHealth');
+          get().updateSystemStatus();
+        },
 
-  // UI State
-  sidebarCollapsed: false,
-  toggleSidebar: () => set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
+        // UI State
+        sidebarCollapsed: false,
+        toggleSidebar: () =>
+          set(
+            (state) => ({ sidebarCollapsed: !state.sidebarCollapsed }),
+            false,
+            'toggleSidebar'
+          ),
+        
+        theme: 'dark', // Default to dark (brand preference)
+        setTheme: (theme) => {
+          set({ theme }, false, 'setTheme');
+          // Apply theme to document
+          if (theme === 'light') {
+            document.documentElement.classList.add('light');
+          } else {
+            document.documentElement.classList.remove('light');
+          }
+        },
+        toggleTheme: () => {
+          const currentTheme = get().theme;
+          const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+          get().setTheme(newTheme);
+        },
 
-  // System Status
-  systemStatus: 'offline',
-  updateSystemStatus: () => {
-    const { apiHealth } = get();
-    
-    if (apiHealth.length === 0) {
-      set({ systemStatus: 'offline' });
-      return;
-    }
+        // System Status
+        systemStatus: 'offline',
+        updateSystemStatus: () => {
+          const { apiHealth } = get();
 
-    const healthyCount = apiHealth.filter(api => api.healthy).length;
-    const totalCount = apiHealth.length;
+          if (apiHealth.length === 0) {
+            set({ systemStatus: 'offline' }, false, 'updateSystemStatus/offline');
+            return;
+          }
 
-    if (healthyCount === totalCount) {
-      set({ systemStatus: 'online' });
-    } else if (healthyCount > 0) {
-      set({ systemStatus: 'degraded' });
-    } else {
-      set({ systemStatus: 'offline' });
-    }
-  },
-}));
+          const healthyCount = apiHealth.filter((api) => api.healthy).length;
+          const totalCount = apiHealth.length;
+
+          if (healthyCount === totalCount) {
+            set({ systemStatus: 'online' }, false, 'updateSystemStatus/online');
+          } else if (healthyCount > 0) {
+            set({ systemStatus: 'degraded' }, false, 'updateSystemStatus/degraded');
+          } else {
+            set({ systemStatus: 'offline' }, false, 'updateSystemStatus/offline');
+          }
+        },
+      }),
+      {
+        name: 'cortex-bridge-storage',
+        partialize: (state) => ({
+          sidebarCollapsed: state.sidebarCollapsed,
+          theme: state.theme,
+        }), // Only persist UI state, not ephemeral health data
+      }
+    )
+  )
+);

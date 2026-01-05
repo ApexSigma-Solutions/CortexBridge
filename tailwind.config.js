@@ -8,6 +8,7 @@ export default {
     extend: {
       colors: {
         primary: {
+          DEFAULT: 'rgb(var(--primary-rgb) / <alpha-value>)',
           50: 'var(--color-primary-50)',
           100: 'var(--color-primary-100)',
           200: 'var(--color-primary-200)',
@@ -19,33 +20,32 @@ export default {
           800: 'var(--color-primary-800)',
           900: 'var(--color-primary-900)',
           950: 'var(--color-primary-950)',
+          foreground: 'var(--primary-foreground)',
         },
-        secondary: {
-          50: 'var(--color-secondary-50)',
-          100: 'var(--color-secondary-100)',
-          200: 'var(--color-secondary-200)',
-          300: 'var(--color-secondary-300)',
-          400: 'var(--color-secondary-400)',
-          500: 'var(--color-secondary-500)',
-          600: 'var(--color-secondary-600)',
-          700: 'var(--color-secondary-700)',
-          800: 'var(--color-secondary-800)',
-          900: 'var(--color-secondary-900)',
-          950: 'var(--color-secondary-950)',
+        // ... (secondary kept as is for now unless needed)
+        background: 'rgb(var(--background-rgb) / <alpha-value>)',
+        foreground: 'var(--foreground)',
+        card: {
+          DEFAULT: 'var(--bg-card)',
+          foreground: 'var(--text-primary)',
         },
-        accent: {
-          50: 'var(--color-accent-50)',
-          100: 'var(--color-accent-100)',
-          200: 'var(--color-accent-200)',
-          300: 'var(--color-accent-300)',
-          400: 'var(--color-accent-400)',
-          500: 'var(--color-accent-500)',
-          600: 'var(--color-accent-600)',
-          700: 'var(--color-accent-700)',
-          800: 'var(--color-accent-800)',
-          900: 'var(--color-accent-900)',
-          950: 'var(--color-accent-950)',
+        popover: {
+          DEFAULT: 'var(--bg-elevated)',
+          foreground: 'var(--text-primary)',
         },
+
+        muted: {
+          DEFAULT: 'var(--bg-elevated)',
+          foreground: 'var(--text-secondary)',
+        },
+        destructive: {
+          DEFAULT: 'var(--color-accent-600)', // reusing Crimson
+          foreground: 'var(--destructive-foreground)',
+        },
+        border: 'var(--border-color)',
+        input: 'var(--input)',
+        ring: 'var(--ring)',
+
         success: 'var(--color-success)',
         warning: 'var(--color-warning)',
         error: 'var(--color-error)',
@@ -66,5 +66,7 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    require("tailwindcss-animate"),
+  ],
 }

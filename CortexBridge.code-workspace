@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../OmegaVault/TN"
+		},
+		{
+			"path": "../OmegaVault/TNP"
+		}
+	],
+	"settings": {}
+}

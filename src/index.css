@@ -3,63 +3,99 @@
 @tailwind utilities;
 
 :root {
-  /* ApexSigma Theme - Primary Colors (Blue) */
-  --color-primary-50: #eff6ff;
-  --color-primary-100: #dbeafe;
-  --color-primary-200: #bfdbfe;
-  --color-primary-300: #93c5fd;
-  --color-primary-400: #60a5fa;
-  --color-primary-500: #3b82f6;
-  --color-primary-600: #2563eb;
-  --color-primary-700: #1d4ed8;
-  --color-primary-800: #1e40af;
-  --color-primary-900: #1e3a8a;
-  --color-primary-950: #172554;
+  /* ApexSigma Brand Tokens */
+  --mirage: #131b24;
+  --primary-dark: #161f27;
+  --blue-dianne: #203444;
+  
+  --boston-blue: #3799ad;
+  --calypso: #338294;
+  --ming: #377684;
+  --casal: #2e515f;
+  
+  /* RGB Channels for Opacity Support */
+  --primary-rgb: 55 153 173; /* #3799ad */
+  --background-rgb: 22 31 39; /* #161f27 */
+  
+  --gray-nurse: #edeeed;
+  --emperor: #545354;
+  --limed-spruce: #354147;
+  --suva-gray: #8c8488;
 
-  /* Secondary Colors (Slate) */
-  --color-secondary-50: #f8fafc;
-  --color-secondary-100: #f1f5f9;
-  --color-secondary-200: #e2e8f0;
-  --color-secondary-300: #cbd5e1;
-  --color-secondary-400: #94a3b8;
-  --color-secondary-500: #64748b;
-  --color-secondary-600: #475569;
-  --color-secondary-700: #334155;
-  --color-secondary-800: #1e293b;
-  --color-secondary-900: #0f172a;
-  --color-secondary-950: #020617;
+  /* ApexSigma Theme - Primary Colors (Boston Blue / Teal) */
+  --color-primary-50: #effcfd;
+  --color-primary-100: #cff6fa;
+  --color-primary-200: #a0ecf6;
+  --color-primary-300: #6cddec;
+  --color-primary-400: #2bc5de;
+  --color-primary-500: #0eaec9;
+  --color-primary-600: #3799ad; /* Brand Primary */
+  --color-primary-700: #338294;
+  --color-primary-800: #155e75;
+  --color-primary-900: #164e63;
+  --color-primary-950: #083344;
 
-  /* Accent Colors (Cyan) */
-  --color-accent-50: #ecfeff;
-  --color-accent-100: #cffafe;
-  --color-accent-200: #a5f3fc;
-  --color-accent-300: #67e8f9;
-  --color-accent-400: #22d3ee;
-  --color-accent-500: #06b6d4;
-  --color-accent-600: #0891b2;
-  --color-accent-700: #0e7490;
-  --color-accent-800: #155e75;
-  --color-accent-900: #164e63;
-  --color-accent-950: #083344;
+  /* Secondary Colors (Based on Calypso / Slate-Teal) */
+  --color-secondary-50: #f4fbfc;
+  --color-secondary-100: #eef8fa;
+  --color-secondary-200: #deeef2;
+  --color-secondary-300: #c4dfe6;
+  --color-secondary-400: #a2cad5;
+  --color-secondary-500: #7daec0;
+  --color-secondary-600: #338294; /* Brand Secondary */
+  --color-secondary-700: #377684;
+  --color-secondary-800: #2e515f;
+  --color-secondary-900: #1d353e;
+  --color-secondary-950: #0f1c22;
+
+  /* Background Colors */
+  --bg-base: var(--primary-dark);
+  --bg-elevated: var(--blue-dianne);
+  --bg-card: var(--mirage);
+  --background: var(--bg-base); /* Alias for standard utility */
+
+  /* Text Colors */
+  --text-primary: var(--gray-nurse);
+  --text-secondary: var(--suva-gray);
+  --text-tertiary: var(--emperor);
+  --foreground: var(--text-primary);
+
+  /* Semantic Foregrounds (Text on Colored Backgrounds) */
+  --primary-foreground: #ffffff;
+  --secondary-foreground: #ffffff;
+  --accent-foreground: #ffffff;
+  --destructive-foreground: #ffffff;
+
+  /* Form/UI Elements */
+  --border-color: var(--limed-spruce);
+  --input: var(--border-color);
+  --ring: var(--boston-blue);
+  --radius: 0.5rem;
+  --color-accent-50: #fef2f2;
+  --color-accent-100: #fee2e2;
+  --color-accent-200: #fecaca;
+  --color-accent-300: #fca5a5;
+  --color-accent-400: #f87171;
+  --color-accent-500: #ef4444;
+  --color-accent-600: #dc2626;
+  --color-accent-700: #b91c1c;
+  --color-accent-800: #991b1b;
+  --color-accent-900: #7f1d1d;
+  --color-accent-950: #450a0a;
 
   /* Status Colors */
   --color-success: #10b981;
   --color-warning: #f59e0b;
   --color-error: #ef4444;
-  --color-info: #3b82f6;
-
-  /* Background Colors */
-  --bg-base: #0f172a;
-  --bg-elevated: #1e293b;
-  --bg-card: #334155;
+  --color-info: var(--boston-blue);
 
   /* Text Colors */
-  --text-primary: #f1f5f9;
-  --text-secondary: #cbd5e1;
-  --text-tertiary: #94a3b8;
+  --text-primary: var(--gray-nurse);
+  --text-secondary: var(--suva-gray);
+  --text-tertiary: var(--emperor);
 
   /* Border Color */
-  --border-color: #475569;
+  --border-color: var(--limed-spruce);
 
   font-family: system-ui, -apple-system, sans-serif;
   font-synthesis: none;
@@ -73,4 +109,23 @@ body {
   min-height: 100vh;
   background-color: var(--bg-base);
   color: var(--text-primary);
+  /* Apply ApexSigma standard font */
+  font-family: 'Inter', system-ui, sans-serif;
 }
+
+:root.light {
+  /* Light Mode Overrides */
+  --bg-base: var(--gray-nurse); /* #edeeed */
+  --bg-elevated: #ffffff;
+  --bg-elevated: #ffffff;
+  --bg-card: #ffffff;
+
+  --background-rgb: 237 238 237; /* #edeeed */
+
+  --text-primary: var(--primary-dark); /* #161f27 */
+  --text-secondary: var(--emperor);    /* #545354 */
+  --text-tertiary: var(--suva-gray);   /* #8c8488 */
+
+  --border-color: var(--suva-gray);
+}
+
