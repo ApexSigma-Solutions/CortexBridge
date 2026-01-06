@@ -28,4 +28,8 @@ vi.mock('lucide-react', () => ({
   HardDrive: () => React.createElement('div', { 'data-testid': 'icon-hard-drive' }),
   Server: () => React.createElement('div', { 'data-testid': 'icon-server' }),
   Inbox: () => React.createElement('div', { 'data-testid': 'icon-inbox' }),
+  FolderSearch: () => React.createElement('div', { 'data-testid': 'icon-folder-search' }),
+  ClipboardList: () => React.createElement('div', { 'data-testid': 'icon-clipboard-list' }),
+  Upload: () => React.createElement('div', { 'data-testid': 'icon-upload' }),
+  RefreshCw: () => React.createElement('div', { 'data-testid': 'icon-refresh-cw' }),
 }));

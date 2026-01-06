@@ -33,6 +33,7 @@ export const API_CONFIGS: ApiConfig[] = [
 ];
 
 import { useAuthStore } from '@/lib/store/useAuthStore';
+import { useToastStore } from '@/lib/store/useToastStore';
 
 // ... (imports)
 
@@ -67,7 +68,15 @@ export class ApiClient {
       (response) => response,
       (error) => {
         if (error.response && error.response.status === 401) {
-          useAuthStore.getState().logout();
+            // Prevent loop: Don't logout if the error comes from the login endpoint itself
+            if (!error.config.url?.includes('/auth/token')) {
+                 const { addToast } = useToastStore.getState();
+                 // Only show toast if we were authenticated before (to avoid spamming on initial load)
+                 if (useAuthStore.getState().isAuthenticated) {
+                     addToast('Session expired. Please log in again.', 'error');
+                 }
+                 useAuthStore.getState().logout();
+            }
         }
         return Promise.reject(error);
       }

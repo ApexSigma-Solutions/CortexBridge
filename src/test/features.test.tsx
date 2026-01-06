@@ -37,6 +37,23 @@ vi.mock('@/lib/api/client', () => ({
       return Promise.resolve({ results: [] });
     }),
     post: vi.fn().mockResolvedValue({})
+  },
+  captureApi: {
+      getVectorHealth: vi.fn().mockResolvedValue({
+          pending_count: 5,
+          total_records: 100,
+          failed_count: 0,
+          worker_running: true,
+          status: 'healthy'
+      }),
+      getServiceHealth: vi.fn().mockResolvedValue({
+          status: 'online',
+          vault_accessible: true,
+          postgres_connected: true
+      }),
+      getRecent: vi.fn().mockResolvedValue([]),
+      manualCapture: vi.fn().mockResolvedValue({ success: true, message: 'Captured' }),
+      controlService: vi.fn().mockResolvedValue({ status: 'ok' })
   }
 }));
 
@@ -67,7 +84,7 @@ describe('InGest Control View', () => {
     
     // Static elements
     expect(screen.getByRole('heading', { name: /Ingestion Playground/i })).toBeInTheDocument();
-    expect(screen.getByPlaceholderText(/Paste text, code/i)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/Paste any text/i)).toBeInTheDocument();
   });
 });
 
