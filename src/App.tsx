@@ -29,6 +29,16 @@ function App() {
     }
   }, [theme]);
 
+  // Auth Protection - Use useEffect to react to auth state changes
+  useEffect(() => {
+    if (!isAuthenticated) {
+      // Clear hash when not authenticated
+      if (window.location.hash) {
+        window.location.hash = '';
+      }
+    }
+  }, [isAuthenticated]);
+
   // Auth Protection
   if (!isAuthenticated) {
     return (
