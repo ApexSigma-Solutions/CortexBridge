@@ -43,10 +43,10 @@ export const useSystemStore = create<SystemState>()(
         setTheme: (theme) => {
           set({ theme }, false, 'setTheme');
           // Apply theme to document
-          if (theme === 'light') {
-            document.documentElement.classList.add('light');
+          if (theme === 'dark') {
+            document.documentElement.classList.add('dark');
           } else {
-            document.documentElement.classList.remove('light');
+            document.documentElement.classList.remove('dark');
           }
         },
         toggleTheme: () => {

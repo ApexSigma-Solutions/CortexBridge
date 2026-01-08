@@ -9,12 +9,12 @@ import { toast } from '@/lib/store/useToastStore';
 import { auditLog } from '@/lib/store/useAuditLogStore';
 import { useAnalyticsStore } from '@/lib/store/useAnalyticsStore';
 import { FileText, FolderSearch, Upload, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { DocumentUpload } from './DocumentUpload';
 
 export function IngestPlayground() {
   const incrementIngestions = useAnalyticsStore((s) => s.incrementIngestions);
   const [text, setText] = useState('');
   const [repoPath, setRepoPath] = useState('');
-  const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -66,28 +66,6 @@ export function IngestPlayground() {
     }
   };
 
-  const handleFileUpload = async () => {
-    if (!file) return;
-    setLoading(true);
-    setResult(null);
-    setError(null);
-    try {
-      const res = await ingestApi.ingestFile(file);
-      setResult(`Uploaded! ID: ${res.ingestion_id} - ${res.message}`);
-      toast.success('File uploaded and processed!');
-      setFile(null);
-    } catch (err: any) {
-        if(err instanceof Error) {
-             setError(err.message);
-             toast.error(`Upload failed: ${err.message}`);
-        } else {
-             setError('Failed to upload file');
-             toast.error('Failed to upload file');
-        }
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <Card className="h-full flex flex-col">
@@ -160,30 +138,13 @@ export function IngestPlayground() {
           </TabsContent>
 
           {/* File Tab */}
-          <TabsContent value="file" className="space-y-4 mt-4">
-            <div className="border-2 border-dashed rounded-lg p-10 flex flex-col items-center justify-center text-center space-y-4 hover:bg-muted/50 transition-colors">
-                <div className="p-4 rounded-full bg-primary/10">
-                    <Upload className="h-8 w-8 text-primary" />
-                </div>
-                <div>
-                     <h3 className="font-semibold">Upload Documents</h3>
-                     <p className="text-sm text-muted-foreground mt-1">
-                        Support for PDF, Markdown, text, and code files.
-                     </p>
-                </div>
-                <Input 
-                    type="file" 
-                    className="max-w-xs" 
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFile(e.target.files?.[0] || null)}
-                />
-            </div>
-             <Button 
-                onClick={handleFileUpload} 
-                disabled={loading || !file} 
-                className="w-full"
-            >
-              {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Upload & Process'}
-            </Button>
+          <TabsContent value="file" className="flex-1 space-y-4 mt-4">
+            <DocumentUpload 
+              onSuccess={(id) => {
+                setResult(`Uploaded! ID: ${id}`);
+                incrementIngestions();
+              }} 
+            />
           </TabsContent>
 
           {/* Status Messages */}

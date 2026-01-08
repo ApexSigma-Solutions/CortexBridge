@@ -1,68 +1,76 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: ["class"],
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
+    container: {
+      center: true,
+      padding: "2rem",
+      screens: {
+        "2xl": "1400px",
+      },
+    },
     extend: {
       colors: {
+        border: "var(--border)",
+        input: "var(--input)",
+        ring: "var(--ring)",
+        background: "var(--background)",
+        foreground: "var(--foreground)",
         primary: {
-          DEFAULT: 'rgb(var(--primary-rgb) / <alpha-value>)',
-          50: 'var(--color-primary-50)',
-          100: 'var(--color-primary-100)',
-          200: 'var(--color-primary-200)',
-          300: 'var(--color-primary-300)',
-          400: 'var(--color-primary-400)',
-          500: 'var(--color-primary-500)',
-          600: 'var(--color-primary-600)',
-          700: 'var(--color-primary-700)',
-          800: 'var(--color-primary-800)',
-          900: 'var(--color-primary-900)',
-          950: 'var(--color-primary-950)',
-          foreground: 'var(--primary-foreground)',
+          DEFAULT: "var(--primary)",
+          foreground: "var(--primary-foreground)",
         },
-        // ... (secondary kept as is for now unless needed)
-        background: 'rgb(var(--background-rgb) / <alpha-value>)',
-        foreground: 'var(--foreground)',
-        card: {
-          DEFAULT: 'var(--bg-card)',
-          foreground: 'var(--text-primary)',
-        },
-        popover: {
-          DEFAULT: 'var(--bg-elevated)',
-          foreground: 'var(--text-primary)',
-        },
-
-        muted: {
-          DEFAULT: 'var(--bg-elevated)',
-          foreground: 'var(--text-secondary)',
+        secondary: {
+          DEFAULT: "var(--secondary)",
+          foreground: "var(--secondary-foreground)",
         },
         destructive: {
-          DEFAULT: 'var(--color-accent-600)', // reusing Crimson
-          foreground: 'var(--destructive-foreground)',
+          DEFAULT: "var(--destructive)",
+          foreground: "var(--destructive-foreground)",
         },
-        border: 'var(--border-color)',
-        input: 'var(--input)',
-        ring: 'var(--ring)',
-
-        success: 'var(--color-success)',
-        warning: 'var(--color-warning)',
-        error: 'var(--color-error)',
-        info: 'var(--color-info)',
+        muted: {
+          DEFAULT: "var(--muted)",
+          foreground: "var(--muted-foreground)",
+        },
+        accent: {
+          DEFAULT: "var(--accent)",
+          foreground: "var(--accent-foreground)",
+        },
+        popover: {
+          DEFAULT: "var(--popover)",
+          foreground: "var(--popover-foreground)",
+        },
+        card: {
+          DEFAULT: "var(--card)",
+          foreground: "var(--card-foreground)",
+        },
+        // Custom Tech Colors
+        void: "#020617",
+        panel: "#1e293b",
+        cyan: {
+          DEFAULT: "#06b6d4",
+          dim: "rgba(6, 182, 212, 0.2)",
+          glow: "rgba(6, 182, 212, 0.5)",
+        },
       },
-      backgroundColor: {
-        'base': 'var(--bg-base)',
-        'elevated': 'var(--bg-elevated)',
-        'card': 'var(--bg-card)',
+      borderRadius: {
+        lg: "var(--radius)",
+        md: "calc(var(--radius) - 2px)",
+        sm: "calc(var(--radius) - 4px)",
       },
-      textColor: {
-        'primary': 'var(--text-primary)',
-        'secondary': 'var(--text-secondary)',
-        'tertiary': 'var(--text-tertiary)',
+      fontFamily: {
+        sans: ["Inter", "ui-sans-serif", "system-ui"],
+        mono: ["JetBrains Mono", "ui-monospace", "monospace"],
       },
-      borderColor: {
-        DEFAULT: 'var(--border-color)',
+      boxShadow: {
+        'tech-sm': '0 0 5px rgba(6, 182, 212, 0.3)',
+        'tech-md': '0 0 10px rgba(6, 182, 212, 0.4)',
+        'tech-lg': '0 0 20px rgba(6, 182, 212, 0.25)',
+        'tech-inner': 'inset 0 0 10px rgba(6, 182, 212, 0.1)',
       },
     },
   },
