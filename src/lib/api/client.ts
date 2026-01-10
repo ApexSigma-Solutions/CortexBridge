@@ -17,17 +17,17 @@ export interface ApiHealth {
 export const API_CONFIGS: ApiConfig[] = [
   {
     name: 'Omega',
-    baseUrl: import.meta.env.VITE_API_OMEGA_URL || 'http://localhost:8765',
+    baseUrl: '/api/omega',
     port: 8765,
   },
   {
     name: 'InGest',
-    baseUrl: import.meta.env.VITE_API_INGEST_URL || 'http://localhost:8766',
+    baseUrl: '/api/ingest',
     port: 8766,
   },
   {
     name: 'Memos',
-    baseUrl: import.meta.env.VITE_API_MEMOS_URL || 'http://localhost:8768',
+    baseUrl: '/api/memos',
     port: 8768,
   },
 ];

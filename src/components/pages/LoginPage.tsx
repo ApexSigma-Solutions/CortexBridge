@@ -20,15 +20,10 @@ export function LoginPage() {
     await new Promise(resolve => setTimeout(resolve, 500));
     
     try {
-        // Login: Exchange "Password" (treated as API Key) for JWT
-        // Note: In a real app, we'd have a separate login endpoint for user/pass
-        // For now, we use the /auth/token endpoint which expects X-API-Key
+        // Login: User authentication with email and password
+        // Uses the new /auth/login endpoint for proper user authentication
         
-        // We use the omegaClient directly here, but we need to bypass the interceptor 
-        // or just ensure we pass the header.
-        
-        // Dynamic import to avoid circular dependency if any (safe here)
-        // const { omegaClient } = await import('@/lib/api/client');
+        // Dynamic import to avoid circular dependency
         const { API_CONFIGS } = await import('@/lib/api/client');
         const axios = (await import('axios')).default;
         
@@ -39,29 +34,55 @@ export function LoginPage() {
 
         // Use direct axios call to bypass auth interceptors that might attach stale tokens
         const response = await axios.post<TokenResponse>(
-            `${API_CONFIGS[0].baseUrl}/auth/token`, 
-            {}, 
+            `${API_CONFIGS[0].baseUrl}/auth/login`, 
+            {
+                email: email,
+                password: password
+            }, 
             {
                 headers: {
-                    'X-API-Key': password,
                     'Content-Type': 'application/json'
                 }
             }
         );
 
         if (response.data.access_token) {
-            login(response.data.access_token, {
-                id: '1', // Backend doesn't return user info yet
-                name: 'Omega Commander',
-                email: email,
-                role: 'admin'
-            });
+            // Fetch user info from /auth/me endpoint
+            try {
+                const userResponse = await axios.get(
+                    `${API_CONFIGS[0].baseUrl}/auth/me`,
+                    {
+                        headers: {
+                            'Authorization': `Bearer ${response.data.access_token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    }
+                );
+                
+                // Login with actual user data from backend
+                login(response.data.access_token, {
+                    id: userResponse.data.id.toString(),
+                    name: userResponse.data.full_name || userResponse.data.username,
+                    email: userResponse.data.email,
+                    role: userResponse.data.role
+                });
+            } catch (userError) {
+                // Fallback if /auth/me fails - login with basic info
+                console.warn("Failed to fetch user info, using basic data:", userError);
+                login(response.data.access_token, {
+                    id: '1',
+                    name: email.split('@')[0],
+                    email: email,
+                    role: 'user'
+                });
+            }
         } else {
               alert("Login failed: No token received");
         }
     } catch (error: any) {
         console.error("Authentication error:", error);
-        alert(`Authentication failed: ${error.message || 'Invalid credentials'}`);
+        const errorMessage = error.response?.data?.detail || error.message || 'Invalid credentials';
+        alert(`Authentication failed: ${errorMessage}`);
     } finally {
         setIsLoading(false);
     }
