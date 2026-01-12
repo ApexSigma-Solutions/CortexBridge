@@ -30,6 +30,11 @@ export const API_CONFIGS: ApiConfig[] = [
     baseUrl: '/api/memos',
     port: 8768,
   },
+  {
+    name: 'GraphParser',
+    baseUrl: 'http://localhost:8000',
+    port: 8000,
+  },
 ];
 
 import { useAuthStore } from '@/lib/store/useAuthStore';
@@ -137,6 +142,7 @@ export class ApiClient {
 export const omegaClient = new ApiClient(API_CONFIGS[0]);
 export const ingestClient = new ApiClient(API_CONFIGS[1]);
 export const memosClient = new ApiClient(API_CONFIGS[2]);
+export const graphParserClient = new ApiClient(API_CONFIGS[3]);
 
 export interface CaptureResponse {
   success: boolean;
@@ -189,6 +195,28 @@ export interface IngestResponse {
     total_chunks?: number;
 }
 
+// Graph Parser Response (TNP-PAR-500)
+export interface GraphNode {
+  id: string;
+  label: string;
+  type: string;
+}
+
+export interface GraphEdge {
+  source: string;
+  target: string;
+  relationship: string;
+}
+
+export interface ParseResponse {
+  nodes: GraphNode[];
+  edges: GraphEdge[];
+  metadata?: {
+    sentence_count: number;
+    char_count: number;
+  };
+}
+
 export interface QueueStatus {
     pending_count: number;
     processed_count: number;
@@ -202,8 +230,8 @@ export const ingestApi = {
     getServiceHealth: () => ingestClient.get<any>('/health'), // Basic health check
 
     // Ingestion Methods
-    ingestText: (text: string) => ingestClient.post<IngestResponse>('/ingest/text', { 
-        text, 
+    ingestText: (text: string) => ingestClient.post<IngestResponse>('/ingest/text', {
+        text,
         source: 'manual_input',
         metadata: { source_type: 'manual' }
     }),
@@ -221,9 +249,12 @@ export const ingestApi = {
     },
     
     // Analysis
-    analyzeProject: () => ingestClient.post<any>('/analysis/projects', { 
-        detail_level: 'comprehensive' 
-    })
+    analyzeProject: () => ingestClient.post<any>('/analysis/projects', {
+        detail_level: 'comprehensive'
+    }),
+
+    // Graph Parser (TNP-PAR-500)
+    parseGraph: (text: string) => graphParserClient.post<ParseResponse>('/graph/parse', { text }),
 };
 
 export interface MemosStats {

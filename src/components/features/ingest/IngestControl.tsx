@@ -1,5 +1,5 @@
 import { IngestStatus } from './IngestStatus';
-import { IngestPlayground } from './IngestPlayground';
+import IngestPlayground from './IngestPlayground';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
 export function IngestControl() {
