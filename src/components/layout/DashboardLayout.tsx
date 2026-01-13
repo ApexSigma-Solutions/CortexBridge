@@ -14,6 +14,8 @@ import {
 } from 'lucide-react';
 import { useSystemStore } from '@/lib/store/systemStore';
 import { useAuthStore } from '@/lib/store/useAuthStore';
+import { useSettingsStore } from '@/lib/store/useSettingsStore';
+import { BackgroundPatterns, PatternType } from '@/components/ui/backgroundpatterns';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { AlertBanner } from '@/components/ui/alert-banner';
@@ -34,6 +36,14 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const { sidebarCollapsed, toggleSidebar, systemStatus, theme, toggleTheme } = useSystemStore();
   const { user, logout } = useAuthStore();
 
+  // Use Zustand selectors to subscribe to specific settings for reactivity
+  const currentPattern = useSettingsStore(
+    (state) => (state.settings.find(s => s.key === 'ui_pattern')?.value || 'circuit') as PatternType
+  );
+  const patternOpacity = useSettingsStore(
+    (state) => (state.settings.find(s => s.key === 'ui_pattern_opacity')?.value || 0.03) as number
+  );
+
   const getStatusBadge = () => {
     switch (systemStatus) {
       case 'online':
@@ -48,7 +58,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   };
 
   return (
-    <div className="flex h-screen bg-background bg-grid-pattern overflow-hidden text-foreground">
+    <div className="flex h-screen bg-background overflow-hidden text-foreground">
+      {/* Dynamic SVG Background Pattern */}
+      <BackgroundPatterns pattern={currentPattern} opacity={patternOpacity} />
       {/* Sidebar - Tech Panel Style */}
       <aside
         className={`${

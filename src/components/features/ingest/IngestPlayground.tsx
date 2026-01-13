@@ -1,170 +1,253 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import { Upload, FileText, Activity, Server, AlertCircle, Play, Loader2, Timer } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ingestApi } from '@/lib/api/client';
-import { toast } from '@/lib/store/useToastStore';
-import { auditLog } from '@/lib/store/useAuditLogStore';
-import { useAnalyticsStore } from '@/lib/store/useAnalyticsStore';
-import { FileText, FolderSearch, Upload, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
-import { DocumentUpload } from './DocumentUpload';
+import { Badge } from '@/components/ui/badge';
+import { ParseResponse } from '@/lib/api/client';
 
-export function IngestPlayground() {
-  const incrementIngestions = useAnalyticsStore((s) => s.incrementIngestions);
-  const [text, setText] = useState('');
-  const [repoPath, setRepoPath] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<string | null>(null);
+const InGestPlayground = () => {
+  const [fileContent, setFileContent] = useState<string | null>(null);
+  const [fileName, setFileName] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadingTime, setLoadingTime] = useState(0);
+  const [result, setResult] = useState<ParseResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  
+  // Timer ref to manage the loading counter
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const handleTextIngest = async () => {
-    if (!text.trim()) return;
-    setLoading(true);
-    setResult(null);
+  // File Handler
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setFileName(file.name);
     setError(null);
-    try {
-      const res = await ingestApi.ingestText(text);
-      setResult(`Success! ID: ${res.ingestion_id}`);
-      toast.success('Text ingested successfully!');
-      auditLog.ingest(`Text ingested (${text.length} chars)`, { id: res.ingestion_id });
-      incrementIngestions();
-      setText('');
-    } catch (err) {
-        if(err instanceof Error) {
-            setError(err.message);
-            toast.error(`Ingestion failed: ${err.message}`);
-        } else {
-             setError('Failed to ingest text');
-             toast.error('Failed to ingest text');
-        }
-    } finally {
-      setLoading(false);
-    }
+    setResult(null);
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = e.target?.result;
+      if (typeof text === 'string') {
+        setFileContent(text);
+      }
+    };
+    reader.onerror = () => setError("Failed to read file.");
+    reader.readAsText(file);
   };
 
-  const handleRepoIngest = async () => {
-    if (!repoPath.trim()) return;
-    setLoading(true);
-    setResult(null);
+  // API Integration using graphParserClient
+  // API Integration (Connecting to TNP-PAR-500 Backend)
+  const handleParse = async () => {
+    if (!fileContent) {
+      setError("Please upload a text file first.");
+      return;
+    }
+
+    setIsLoading(true);
     setError(null);
+    setLoadingTime(0);
+
+    // Start a visual timer
+    timerRef.current = setInterval(() => {
+      setLoadingTime(prev => prev + 1);
+    }, 1000);
+
+    // Timeout Configuration (60s for xlarge_docs per KG)
+    const TIMEOUT_MS = 60000; 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
+
     try {
-      const res = await ingestApi.ingestRepo(repoPath);
-      setResult(`Raid Started! ID: ${res.ingestion_id} - ${res.message}`);
-      toast.success('Repository raid initiated!');
+      // Direct fetch to bypass default axios timeout
+      const response = await fetch('http://localhost:8000/graph/parse', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ text: fileContent }),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        throw new Error(`Engine Error: ${response.statusText} (${response.status})`);
+      }
+
+      const data = await response.json();
+      // Adjust structure based on exact API wrapper
+      const graphData = data.data || data; 
+      setResult(graphData);
     } catch (err) {
-        if(err instanceof Error) {
-            setError(err.message);
-            toast.error(`Raid failed: ${err.message}`);
+      if (err instanceof Error) {
+        if (err.name === 'AbortError') {
+          setError(`Request timed out after ${TIMEOUT_MS / 1000}s. The document might be too large.`);
         } else {
-            setError('Failed to raid repo');
-            toast.error('Failed to raid repository');
+          setError(err.message);
         }
+      } else {
+        setError("An unknown error occurred");
+      }
     } finally {
-      setLoading(false);
+      setIsLoading(false);
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
     }
   };
-
 
   return (
-    <Card className="h-full flex flex-col">
-      <CardHeader>
-        <CardTitle>Ingestion Playground</CardTitle>
-        <CardDescription>
-          Manually ingest data into the Omega Knowledge Graph.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="flex-1">
-        <Tabs defaultValue="text" className="h-full flex flex-col">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="text" className="gap-2">
-              <FileText className="h-4 w-4" /> Text
-            </TabsTrigger>
-            <TabsTrigger value="repo" className="gap-2">
-                <FolderSearch className="h-4 w-4" /> Repo Raider
-            </TabsTrigger>
-            <TabsTrigger value="file" className="gap-2">
-                <Upload className="h-4 w-4" /> Upload
-            </TabsTrigger>
-          </TabsList>
+    <div className="space-y-6">
+      {/* Header Area */}
+      <div className="flex items-center justify-between border-b border-border pb-4">
+        <div>
+          <h2 className="text-2xl font-bold text-primary tracking-tight flex items-center gap-2">
+            <Activity className="w-6 h-6" />
+            InGest-LLM.as Playground
+          </h2>
+          <p className="text-sm text-secondary mt-1">
+            Knowledge Graph Extraction Engine (v4.0.2 Integration)
+          </p>
+        </div>
+        <Badge variant="success" className="flex items-center gap-2">
+          <Server className="w-4 h-4" />
+          <span>ONLINE</span>
+        </Badge>
+      </div>
 
-          {/* Text Tab */}
-          <TabsContent value="text" className="flex-1 space-y-4 mt-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Raw Text Content</label>
-              <Textarea
-                placeholder="Paste any text, code snippet, or notes here..."
-                className="min-h-[200px] font-mono text-sm"
-                value={text}
-                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setText(e.target.value)}
-              />
-            </div>
-            <Button 
-                onClick={handleTextIngest} 
-                disabled={loading || !text.trim()} 
-                className="w-full"
-            >
-              {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Ingest Text'}
-            </Button>
-          </TabsContent>
-
-          {/* Repo Tab */}
-          <TabsContent value="repo" className="space-y-4 mt-4">
-             <div className="p-4 border rounded-lg bg-muted/50">
-                <h3 className="font-semibold mb-2 flex items-center gap-2">
-                    <FolderSearch className="h-4 w-4" /> Repository Raider
-                </h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                    Point InGest-LLM at a local folder to recursively ingest code, docs, and logic.
-                </p>
-                <div className="space-y-2">
-                    <label className="text-sm font-medium">Local Path</label>
-                    <Input 
-                        placeholder="C:\Projects\MyCoolApp" 
-                        value={repoPath}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRepoPath(e.target.value)}
-                    />
+      <div className="grid gap-6 md:grid-cols-2 h-[500px]">
+        
+        {/* LEFT PANEL: Input & Controls */}
+        <div className="h-full flex flex-col gap-4">
+          <Card className="h-full">
+            <CardHeader>
+              <CardTitle>Document Upload</CardTitle>
+              <CardDescription>Upload TXT or MD files for knowledge graph extraction</CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-4">
+              
+              {/* File Upload Zone */}
+              <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-border rounded-lg cursor-pointer bg-card/50 hover:bg-card transition-all">
+                <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                  <Upload className="w-8 h-8 mb-2 text-muted-foreground hover:text-primary" />
+                  <p className="mb-2 text-sm text-muted-foreground">
+                    <span className="font-semibold">Click to upload</span> or drag and drop
+                  </p>
+                  <p className="text-xs text-secondary">TXT or MD files (MAX 5MB)</p>
                 </div>
-             </div>
-             <Button 
-                onClick={handleRepoIngest} 
-                disabled={loading || !repoPath.trim()} 
-                className="w-full"
-                variant="secondary"
-            >
-              {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Start Raid'}
-            </Button>
-          </TabsContent>
-
-          {/* File Tab */}
-          <TabsContent value="file" className="flex-1 space-y-4 mt-4">
-            <DocumentUpload 
-              onSuccess={(id) => {
-                setResult(`Uploaded! ID: ${id}`);
-                incrementIngestions();
-              }} 
-            />
-          </TabsContent>
-
-          {/* Status Messages */}
-          <div className="mt-6">
-            {result && (
-                <div className="p-3 bg-green-500/15 border border-green-500/30 text-green-600 rounded-md flex items-center text-sm">
-                    <CheckCircle2 className="h-4 w-4 mr-2" />
-                    {result}
+                <input type="file" className="hidden" accept=".txt,.md" onChange={handleFileUpload} />
+              </label>
+              
+              {fileName && (
+                <div className="flex items-center gap-2 text-primary text-sm bg-primary/10 p-2 rounded border border-border">
+                  <FileText className="w-4 h-4" />
+                  <span className="truncate">{fileName}</span>
                 </div>
-            )}
-            {error && (
-                <div className="p-3 bg-destructive/15 border border-destructive/30 text-destructive rounded-md flex items-center text-sm">
-                    <AlertCircle className="h-4 w-4 mr-2" />
-                    {error}
-                </div>
-            )}
-          </div>
+              )}
 
-        </Tabs>
-      </CardContent>
-    </Card>
+              {/* Action Button */}
+              <button
+                onClick={handleParse}
+                disabled={!fileContent || isLoading}
+                className={`
+                  w-full py-3 px-4 rounded-lg font-bold flex items-center justify-center gap-2 transition-all
+                  ${!fileContent || isLoading 
+                    ? 'bg-muted text-muted-foreground cursor-not-allowed' 
+                    : 'bg-primary hover:bg-primary/90 text-primary-foreground'}
+                `}
+              >
+                {isLoading ? (
+                  <div className="flex items-center gap-2">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Processing... ({loadingTime}s)</span>
+                  </div>
+                ) : (
+                  <>
+                    <Play className="w-4 h-4 fill-current" />
+                    Initialize Extraction
+                  </>
+                )}
+              </button>
+
+              {/* Timeout Warning / Hint */}
+              {isLoading && loadingTime > 5 && (
+                <div className="text-xs text-yellow-500/80 flex items-center gap-1 bg-yellow-950/20 p-2 rounded">
+                  <Timer className="w-3 h-3" />
+                  <span>Large documents may take up to 60s...</span>
+                </div>
+              )}
+
+              {/* Error Display */}
+              {error && (
+                <div className="bg-destructive/10 border border-destructive/50 text-destructive p-3 rounded text-sm flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+                  <span>{error}</span>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* RIGHT PANEL: Results Visualization */}
+        <div className="h-full">
+          <Card className="h-full">
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <CardTitle>Extraction Results</CardTitle>
+                {result && (
+                  <Badge variant="outline">
+                    {result.nodes.length} Nodes | {result.edges.length} Relations
+                  </Badge>
+                )}
+              </div>
+              <CardDescription>Extracted entities and relationships from document</CardDescription>
+            </CardHeader>
+            <CardContent className="flex-1 overflow-auto">
+              {!result ? (
+                <div className="h-full flex flex-col items-center justify-center text-muted-foreground opacity-50">
+                  <Activity className="w-16 h-16 mb-4" />
+                  <p>Waiting for input stream...</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Nodes List */}
+                  <div className="space-y-2">
+                    <h3 className="text-xs text-secondary mb-2 font-bold uppercase tracking-wider">DETECTED ENTITIES</h3>
+                    {result.nodes.map((node, i) => (
+                      <div key={i} className="flex items-center justify-between p-3 border border-border rounded-lg bg-card/50 hover:bg-card transition-colors">
+                        <span className="text-primary font-medium">{node.id}</span>
+                        <Badge variant="secondary" className="text-xs">
+                          {node.label}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Edges List */}
+                  <div className="space-y-2">
+                    <h3 className="text-xs text-secondary mb-2 font-bold uppercase tracking-wider">RELATIONSHIPS</h3>
+                    {result.edges.map((edge, i) => (
+                      <div key={i} className="flex flex-col p-3 border border-border rounded-lg bg-card/50 hover:bg-card transition-colors">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-secondary text-sm">{edge.source}</span>
+                          <span className="text-primary">→</span>
+                          <span className="text-secondary text-sm">{edge.target}</span>
+                        </div>
+                        <Badge variant="outline" className="text-xs self-start">
+                          {edge.relationship}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+      </div>
+    </div>
   );
-}
+};
+
+export default InGestPlayground;
