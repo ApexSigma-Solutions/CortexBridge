@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { ParseResponse } from '@/lib/api/client';
 
 const InGestPlayground = () => {
-  const [fileContent, setFileContent] = useState<string | null>(null);
+  const [file, setFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingTime, setLoadingTime] = useState(0);
@@ -13,33 +13,24 @@ const InGestPlayground = () => {
   const [error, setError] = useState<string | null>(null);
   
   // Timer ref to manage the loading counter
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // File Handler
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+    const selectedFile = event.target.files?.[0];
+    if (!selectedFile) return;
 
-    setFileName(file.name);
+    setFile(selectedFile);
+    setFileName(selectedFile.name);
     setError(null);
     setResult(null);
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const text = e.target?.result;
-      if (typeof text === 'string') {
-        setFileContent(text);
-      }
-    };
-    reader.onerror = () => setError("Failed to read file.");
-    reader.readAsText(file);
   };
 
-  // API Integration using graphParserClient
+  // API Integration using FormData for file uploads
   // API Integration (Connecting to TNP-PAR-500 Backend)
   const handleParse = async () => {
-    if (!fileContent) {
-      setError("Please upload a text file first.");
+    if (!file) {
+      setError("Please upload a file first.");
       return;
     }
 
@@ -58,13 +49,16 @@ const InGestPlayground = () => {
     const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
     try {
-      // Direct fetch to bypass default axios timeout
-      const response = await fetch('http://localhost:8000/graph/parse', {
+      // Construct FormData for file upload
+      // Content-Type is NOT set manually - browser sets it with multipart/form-data and boundary
+      const formData = new FormData();
+      formData.append('file', file);
+
+      // Direct fetch to /graph/parse/file endpoint (file upload support)
+      const response = await fetch('http://localhost:8000/graph/parse/file', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ text: fileContent }),
+        // Do NOT set Content-Type header - let browser set it with boundary for FormData
+        body: formData,
         signal: controller.signal,
       });
 
@@ -122,7 +116,7 @@ const InGestPlayground = () => {
           <Card className="h-full">
             <CardHeader>
               <CardTitle>Document Upload</CardTitle>
-              <CardDescription>Upload TXT or MD files for knowledge graph extraction</CardDescription>
+              <CardDescription>Upload files for knowledge graph extraction</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col gap-4">
               
@@ -133,9 +127,14 @@ const InGestPlayground = () => {
                   <p className="mb-2 text-sm text-muted-foreground">
                     <span className="font-semibold">Click to upload</span> or drag and drop
                   </p>
-                  <p className="text-xs text-secondary">TXT or MD files (MAX 5MB)</p>
+                  <p className="text-xs text-secondary">TXT, MD, PDF, DOCX files (MAX 5MB)</p>
                 </div>
-                <input type="file" className="hidden" accept=".txt,.md" onChange={handleFileUpload} />
+                <input 
+                  type="file" 
+                  className="hidden" 
+                  accept=".txt,.md,.pdf,.docx"
+                  onChange={handleFileUpload} 
+                />
               </label>
               
               {fileName && (
@@ -148,10 +147,10 @@ const InGestPlayground = () => {
               {/* Action Button */}
               <button
                 onClick={handleParse}
-                disabled={!fileContent || isLoading}
+                disabled={!file || isLoading}
                 className={`
                   w-full py-3 px-4 rounded-lg font-bold flex items-center justify-center gap-2 transition-all
-                  ${!fileContent || isLoading 
+                  {!file || isLoading 
                     ? 'bg-muted text-muted-foreground cursor-not-allowed' 
                     : 'bg-primary hover:bg-primary/90 text-primary-foreground'}
                 `}
