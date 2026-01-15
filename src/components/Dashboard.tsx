@@ -31,7 +31,7 @@ export function Dashboard() {
 
   const handleControl = (name: string, action: 'start' | 'stop') => {
       // Cast to any to bypass generic build issues
-      (captureApi as any).controlService(name, action).then(() => healthPoller.checkNow());
+      captureApi.controlService(name, action).then(() => healthPoller.checkNow());
   };
 
   const getServiceIcon = (name: string) => {
@@ -51,7 +51,7 @@ export function Dashboard() {
           <h2 className="text-3xl font-black text-foreground tracking-tighter uppercase italic">
             Command <span className="text-teal-500">Dashboard</span>
           </h2>
-          <p className="text-teal-600/70 font-mono text-[10px] uppercase tracking-[0.3em] font-bold mt-1">
+          <p className="text-teal-500 font-mono text-[10px] uppercase tracking-[0.3em] font-bold mt-1">
             Core Systems Oversight & Management
           </p>
         </div>
@@ -110,7 +110,7 @@ export function Dashboard() {
                     </div>
                     <div>
                         <CardTitle className="text-base font-black tracking-tighter text-foreground uppercase italic">{api.name}</CardTitle>
-                        <div className="text-[9px] text-teal-500/60 font-mono tracking-widest font-bold">SYS_NODE::{api.name.toUpperCase()}</div>
+                        <div className="text-[9px] text-teal-400 font-mono tracking-widest font-bold">SYS_NODE::{api.name.toUpperCase()}</div>
                     </div>
                   </div>
                   <div className="flex flex-col items-end">

@@ -3,10 +3,13 @@ import { Upload, FileText, Activity, Server, AlertCircle, Play, Loader2, Timer }
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ParseResponse } from '@/lib/api/client';
+import { useToastStore } from '@/lib/store/useToastStore';
 
 const InGestPlayground = () => {
+  const { addToast } = useToastStore();
   const [file, setFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
+  const [model, setModel] = useState<string>('en_core_web_sm');
   const [isLoading, setIsLoading] = useState(false);
   const [loadingTime, setLoadingTime] = useState(0);
   const [result, setResult] = useState<ParseResponse | null>(null);
@@ -53,9 +56,10 @@ const InGestPlayground = () => {
       // Content-Type is NOT set manually - browser sets it with multipart/form-data and boundary
       const formData = new FormData();
       formData.append('file', file);
+      formData.append('model_name', model);
 
-      // Direct fetch to /graph/parse/file endpoint (file upload support)
-      const response = await fetch('http://localhost:8000/graph/parse/file', {
+      // Direct fetch to /graph/parse/file endpoint (Update port to 8766 to match Ingest Service)
+      const response = await fetch('http://localhost:8766/graph/parse/file', {
         method: 'POST',
         // Do NOT set Content-Type header - let browser set it with boundary for FormData
         body: formData,
@@ -72,6 +76,7 @@ const InGestPlayground = () => {
       // Adjust structure based on exact API wrapper
       const graphData = data.data || data; 
       setResult(graphData);
+      addToast('Knowledge Digest Received', 'success');
     } catch (err) {
       if (err instanceof Error) {
         if (err.name === 'AbortError') {
@@ -99,7 +104,7 @@ const InGestPlayground = () => {
             <Activity className="w-6 h-6" />
             InGest-LLM.as Playground
           </h2>
-          <p className="text-sm text-secondary mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             Knowledge Graph Extraction Engine (v4.0.2 Integration)
           </p>
         </div>
@@ -127,7 +132,7 @@ const InGestPlayground = () => {
                   <p className="mb-2 text-sm text-muted-foreground">
                     <span className="font-semibold">Click to upload</span> or drag and drop
                   </p>
-                  <p className="text-xs text-secondary">TXT, MD, PDF, DOCX files (MAX 5MB)</p>
+                  <p className="text-xs text-muted-foreground/80">TXT, MD, PDF, DOCX files (MAX 5MB)</p>
                 </div>
                 <input 
                   type="file" 
@@ -137,12 +142,31 @@ const InGestPlayground = () => {
                 />
               </label>
               
-              {fileName && (
+          {fileName && (
                 <div className="flex items-center gap-2 text-primary text-sm bg-primary/10 p-2 rounded border border-border">
                   <FileText className="w-4 h-4" />
                   <span className="truncate">{fileName}</span>
                 </div>
               )}
+
+              {/* Model Selection */}
+              <div className="space-y-2 pt-2 border-t border-border/50">
+                  <label className="text-xs font-mono font-bold uppercase text-muted-foreground tracking-wider">Extraction Model</label>
+                  <select 
+                    value={model} 
+                    onChange={(e) => setModel(e.target.value)}
+                    className="w-full bg-card/50 border border-input rounded-md py-2 px-3 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  >
+                        <option value="en_core_web_trf">Best Accuracy (Transformer)</option>
+                        <option value="en_core_web_md">Balanced (Vectors)</option>
+                        <option value="en_core_web_sm">Fastest (Lightweight)</option>
+                  </select>
+                  <p className="text-[10px] text-muted-foreground italic">
+                      {model === 'en_core_web_trf' && "High memory usage. Best for complex entities."}
+                      {model === 'en_core_web_md' && "Good balance of speed and accuracy."}
+                      {model === 'en_core_web_sm' && "Instant results, basic extraction."}
+                  </p>
+              </div>
 
               {/* Action Button */}
               <button
@@ -211,13 +235,20 @@ const InGestPlayground = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Nodes List */}
                   <div className="space-y-2">
-                    <h3 className="text-xs text-secondary mb-2 font-bold uppercase tracking-wider">DETECTED ENTITIES</h3>
+                    <h3 className="text-xs text-muted-foreground mb-2 font-bold uppercase tracking-wider">DETECTED ENTITIES</h3>
                     {result.nodes.map((node, i) => (
-                      <div key={i} className="flex items-center justify-between p-3 border border-border rounded-lg bg-card/50 hover:bg-card transition-colors">
-                        <span className="text-primary font-medium">{node.id}</span>
-                        <Badge variant="secondary" className="text-xs">
-                          {node.label}
-                        </Badge>
+                      <div key={i} className="flex flex-col p-3 border border-border rounded-lg bg-card/50 hover:bg-card transition-colors group/node">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-primary font-bold tracking-tight">{node.id}</span>
+                          <Badge variant="secondary" className="text-[10px] uppercase font-mono px-1.5 py-0 h-4">
+                            {node.label || node.type}
+                          </Badge>
+                        </div>
+                        {node.description && (
+                          <p className="text-[10px] text-muted-foreground leading-relaxed line-clamp-2 mt-1 italic border-l-2 border-primary/20 pl-2 group-hover/node:border-primary/50 transition-colors">
+                            "{node.description}"
+                          </p>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -228,9 +259,9 @@ const InGestPlayground = () => {
                     {result.edges.map((edge, i) => (
                       <div key={i} className="flex flex-col p-3 border border-border rounded-lg bg-card/50 hover:bg-card transition-colors">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="text-secondary text-sm">{edge.source}</span>
+                          <span className="text-muted-foreground text-sm">{edge.source}</span>
                           <span className="text-primary">→</span>
-                          <span className="text-secondary text-sm">{edge.target}</span>
+                          <span className="text-muted-foreground text-sm">{edge.target}</span>
                         </div>
                         <Badge variant="outline" className="text-xs self-start">
                           {edge.relationship}

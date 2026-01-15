@@ -27,7 +27,7 @@ export function TelemetryWidget() {
             <BarChart3 className="h-4 w-4 text-teal-400" />
             Neural Telemetry
          </CardTitle>
-         <CardDescription className="text-[10px] text-teal-500/40 font-mono tracking-widest mt-1">REAL-TIME_FEED_01</CardDescription>
+         <CardDescription className="text-[10px] text-teal-400 font-mono tracking-widest mt-1">REAL-TIME_FEED_01</CardDescription>
       </CardHeader>
       
       <CardContent className="space-y-4 pt-4 px-6">
@@ -90,7 +90,7 @@ export function TelemetryWidget() {
 
         {/* Footer Meta */}
         <div className="pt-2 border-t border-border/10">
-            <div className="flex justify-between text-[8px] font-mono text-slate-500 tracking-tighter">
+            <div className="flex justify-between text-[8px] font-mono text-muted-foreground tracking-tighter">
                 <span>BUFFER_CAP: 100_ENTRIES</span>
                 <span>ENC: AES_256</span>
             </div>

@@ -44,7 +44,7 @@ export function AnalyticsWidgets() {
                 <div className="text-3xl font-bold text-foreground font-mono tracking-tighter tabular-nums">
                     {value}
                 </div>
-                <div className="text-[10px] text-cyan-500/60 font-mono tracking-widest uppercase mt-1">
+                <div className="text-[10px] text-cyan-400 font-mono tracking-widest uppercase mt-1">
                     {label}
                 </div>
               </div>

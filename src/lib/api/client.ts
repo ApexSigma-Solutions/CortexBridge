@@ -1,4 +1,4 @@
-import axios, { AxiosInstance, AxiosError } from 'axios';
+import axios, { AxiosInstance, AxiosError, AxiosRequestConfig } from 'axios';
 
 export interface ApiConfig {
   name: string;
@@ -127,12 +127,12 @@ export class ApiClient {
     }
   }
 
-  async get<T>(endpoint: string, config?: any): Promise<T> {
+  async get<T>(endpoint: string, config?: AxiosRequestConfig): Promise<T> {
     const response = await this.client.get<T>(endpoint, config);
     return response.data;
   }
 
-  async post<T>(endpoint: string, data: unknown, config?: any): Promise<T> {
+  async post<T>(endpoint: string, data: unknown, config?: AxiosRequestConfig): Promise<T> {
     const response = await this.client.post<T>(endpoint, data, config);
     return response.data;
   }
@@ -200,6 +200,7 @@ export interface GraphNode {
   id: string;
   label: string;
   type: string;
+  description?: string;
 }
 
 export interface GraphEdge {
@@ -227,7 +228,7 @@ export interface QueueStatus {
 export const ingestApi = {
     // Health & Queue
     getQueueStatus: () => ingestClient.get<QueueStatus>('/ingest/queue'),
-    getServiceHealth: () => ingestClient.get<any>('/health'), // Basic health check
+    getServiceHealth: () => ingestClient.get<ServiceHealth>('/health'), // Basic health check
 
     // Ingestion Methods
     ingestText: (text: string) => ingestClient.post<IngestResponse>('/ingest/text', {
@@ -249,12 +250,13 @@ export const ingestApi = {
     },
     
     // Analysis
-    analyzeProject: () => ingestClient.post<any>('/analysis/projects', {
+    analyzeProject: () => ingestClient.post<Record<string, unknown>>('/analysis/projects', {
         detail_level: 'comprehensive'
     }),
 
     // Graph Parser (TNP-PAR-500)
-    parseGraph: (text: string) => graphParserClient.post<ParseResponse>('/graph/parse', { text }),
+    parseGraph: (text: string, config: Record<string, any> = {}) => 
+        graphParserClient.post<ParseResponse>('/graph/parse', { text, config }),
 };
 
 export interface MemosStats {
@@ -272,6 +274,7 @@ export const memosApi = {
       by_tier: { semantic: 0, procedural: 0 },
       vector_dimension: 1024
     }),
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     search: (_query: string) => Promise.resolve({ results: [] }),
     getScratchpad: () => Promise.resolve({ content: "Scratchpad unavailable (MCP native mode)" }),
 };

@@ -63,7 +63,7 @@ export function RecentCaptures() {
                             <div>
                             <p className="text-sm font-medium text-primary line-clamp-1">{capture.file_path}</p>
                             <div className="flex items-center gap-2 mt-1">
-                                <span className="text-xs text-secondary capitalize">{platform}</span>
+                                <span className="text-xs text-muted-foreground capitalize">{platform}</span>
                             </div>
                             </div>
                         </div>

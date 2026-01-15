@@ -21,7 +21,7 @@
     --secondary-foreground: #0f172a;
     
     --muted: #f1f5f9;
-    --muted-foreground: #1e293b; /* Ultra-dark for max legibility on light bk */
+    --muted-foreground: #0f172a; /* Ultra-dark for max legibility */
     
     --accent: #00BFA6;
     --accent-foreground: #ffffff;
@@ -55,7 +55,7 @@
     --secondary-foreground: #f8fafc;
     
     --muted: #1e293b;
-    --muted-foreground: #94a3b8;
+    --muted-foreground: #cbd5e1; /* Bumped up from #94a3b8 for better contrast on #0f172a */
     
     --accent: rgba(0, 191, 166, 0.2);
     --accent-foreground: #00BFA6;
@@ -63,7 +63,7 @@
     --destructive: #ef4444;
     --destructive-foreground: #ffffff;
 
-    --border: rgba(0, 191, 166, 0.2);
+    --border: rgba(0, 191, 166, 0.3); /* Slightly more visible border */
     --input: #0f172a;
     --ring: #00BFA6;
 

@@ -29,17 +29,17 @@ export function MemosControl() {
                 <CardHeader>
                     <CardTitle>System Information</CardTitle>
                 </CardHeader>
-                <CardContent className="text-secondary text-sm space-y-4">
+                <CardContent className="text-muted-foreground text-sm space-y-4">
                     <div>
-                        <h4 className="font-semibold mb-1">Vector Store</h4>
+                        <h4 className="font-semibold mb-1 text-foreground">Vector Store</h4>
                         <p className="text-xs text-muted-foreground">PostgreSQL + pgvector</p>
                     </div>
                     <div>
-                        <h4 className="font-semibold mb-1">Embedding Model</h4>
+                        <h4 className="font-semibold mb-1 text-foreground">Embedding Model</h4>
                         <p className="text-xs text-muted-foreground">BAAI/bge-m3 (Dense)</p>
                     </div>
                     <div>
-                        <h4 className="font-semibold mb-1">Active Tools</h4>
+                        <h4 className="font-semibold mb-1 text-foreground">Active Tools</h4>
                         <ul className="list-disc pl-4 text-xs text-muted-foreground space-y-1 mt-1">
                             <li>consult_mirmir</li>
                             <li>retrieve_context</li>
@@ -48,7 +48,7 @@ export function MemosControl() {
                         </ul>
                     </div>
                      <div className="pt-4 border-t border-border mt-4">
-                        <p className="text-xs text-tertiary">
+                        <p className="text-xs text-muted-foreground/70">
                             Use the search interface to inspect vector similarities and stored context.
                         </p>
                     </div>

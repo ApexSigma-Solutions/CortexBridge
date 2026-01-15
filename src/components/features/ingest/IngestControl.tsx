@@ -23,13 +23,13 @@ export function IngestControl() {
                 <CardHeader>
                     <CardTitle>Configuration</CardTitle>
                 </CardHeader>
-                <CardContent className="text-secondary text-sm space-y-2">
-                    <p><strong>Async Processing:</strong> Enabled</p>
-                    <p><strong>Chunk Size:</strong> 1000 chars</p>
-                    <p><strong>Embedding Model:</strong> bge-m3</p>
-                    <p><strong>Summarizer:</strong> qwen2.5-coder</p>
+                <CardContent className="text-muted-foreground text-sm space-y-2">
+                    <p><strong className="text-foreground">Async Processing:</strong> Enabled</p>
+                    <p><strong className="text-foreground">Chunk Size:</strong> 1000 chars</p>
+                    <p><strong className="text-foreground">Embedding Model:</strong> bge-m3</p>
+                    <p><strong className="text-foreground">Summarizer:</strong> qwen2.5-coder</p>
                     <div className="pt-4 border-t border-border mt-4">
-                        <p className="text-xs text-tertiary">
+                        <p className="text-xs text-muted-foreground/70">
                             Configure these settings in environment variables or the Settings view (coming soon).
                         </p>
                     </div>

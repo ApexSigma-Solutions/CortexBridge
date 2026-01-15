@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 interface MemoryResult {
   content: string;
   similarity: number;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   created_at?: string;
   id?: number;
 }
@@ -70,11 +70,11 @@ export function MemosSearch() {
                  <Badge variant="outline" className="font-mono text-[10px]">
                     score: {result.similarity?.toFixed(3)}
                  </Badge>
-                 <span className="text-xs text-tertiary">
+                 <span className="text-xs text-muted-foreground">
                     {result.created_at ? new Date(result.created_at).toLocaleDateString() : 'Unknown Date'}
                  </span>
               </div>
-              <p className="text-sm text-secondary whitespace-pre-wrap line-clamp-4">
+              <p className="text-sm text-foreground whitespace-pre-wrap line-clamp-4">
                 {result.content}
               </p>
              {result.metadata && Object.keys(result.metadata).length > 0 && (
