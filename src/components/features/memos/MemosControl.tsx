@@ -1,7 +1,7 @@
 import { MemosStatus } from './MemosStatus';
 import { MemosSearch } from './MemosSearch';
 import { MemosScratchpad } from './MemosScratchpad';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { PulseStreamViewer } from './PulseStreamViewer';
 
 export function MemosControl() {
   return (
@@ -23,37 +23,9 @@ export function MemosControl() {
             </div>
         </div>
         
-        {/* Right: Agent/System Info (1/3) */}
+        {/* Right: Live Pulse Stream (1/3) */}
         <div className="h-full">
-            <Card className="h-full">
-                <CardHeader>
-                    <CardTitle>System Information</CardTitle>
-                </CardHeader>
-                <CardContent className="text-muted-foreground text-sm space-y-4">
-                    <div>
-                        <h4 className="font-semibold mb-1 text-foreground">Vector Store</h4>
-                        <p className="text-xs text-muted-foreground">PostgreSQL + pgvector</p>
-                    </div>
-                    <div>
-                        <h4 className="font-semibold mb-1 text-foreground">Embedding Model</h4>
-                        <p className="text-xs text-muted-foreground">BAAI/bge-m3 (Dense)</p>
-                    </div>
-                    <div>
-                        <h4 className="font-semibold mb-1 text-foreground">Active Tools</h4>
-                        <ul className="list-disc pl-4 text-xs text-muted-foreground space-y-1 mt-1">
-                            <li>consult_mirmir</li>
-                            <li>retrieve_context</li>
-                            <li>scratch_write</li>
-                            <li>promote_memory</li>
-                        </ul>
-                    </div>
-                     <div className="pt-4 border-t border-border mt-4">
-                        <p className="text-xs text-muted-foreground/70">
-                            Use the search interface to inspect vector similarities and stored context.
-                        </p>
-                    </div>
-                </CardContent>
-            </Card>
+            <PulseStreamViewer />
         </div>
       </section>
     </div>
