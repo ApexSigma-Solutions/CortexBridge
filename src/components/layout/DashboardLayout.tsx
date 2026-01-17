@@ -12,6 +12,7 @@ import {
   LogOut,
   Cpu
 } from 'lucide-react';
+import { SystemHUD } from '@/components/common/SystemHUD';
 import { useSystemStore } from '@/lib/store/systemStore';
 import { useAuthStore } from '@/lib/store/useAuthStore';
 import { useSettingsStore } from '@/lib/store/useSettingsStore';
@@ -155,6 +156,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             </h1>
             
             <div className="flex items-center gap-4">
+              {/* System HUD - Vitals Telemetry */}
+              <SystemHUD />
+              
+              <div className="h-8 w-[1px] bg-border mx-1"></div>
+              
               <div className="hidden md:flex flex-col items-end mr-2">
                 <span className="text-sm font-black tracking-tighter text-foreground uppercase italic">{user?.email || 'admin@omegakg.io'}</span>
                  <span className="text-[10px] text-teal-500 uppercase tracking-[0.3em] font-black italic">SUPERUSER</span>

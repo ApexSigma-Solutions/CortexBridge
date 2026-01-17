@@ -32,8 +32,8 @@ export const API_CONFIGS: ApiConfig[] = [
   },
   {
     name: 'GraphParser',
-    baseUrl: 'http://localhost:8000',
-    port: 8000,
+    baseUrl: 'http://localhost:8766',
+    port: 8766,
   },
 ];
 
@@ -171,11 +171,27 @@ export interface ServiceHealth {
   postgres_error?: string;
 }
 
+export interface OmegaStats {
+  total_captures: number;
+  recent_captures_24h: number;
+  neo4j_status: string;
+  postgres_status: string;
+  active_sessions: number;
+}
+
+export interface IngestStats {
+  queue: QueueStatus;
+  throughput_24h: number;
+  error_rate_24h: number;
+  system_healthy: boolean;
+}
+
 export interface CaptureApi {
     getRecent: () => Promise<CaptureResponse[]>;
     manualCapture: (data: unknown) => Promise<CaptureResponse>;
     getVectorHealth: () => Promise<VectorHealth>;
     getServiceHealth: () => Promise<ServiceHealth>;
+    getStats: () => Promise<OmegaStats>;
     controlService: (serviceName: string, action: 'start' | 'stop' | 'restart') => Promise<{status: string, pid?: number}>;
 }
 
@@ -184,6 +200,7 @@ export const captureApi: CaptureApi = {
     manualCapture: (data: unknown) => omegaClient.post<CaptureResponse>('/capture', data),
     getVectorHealth: () => omegaClient.get<VectorHealth>('/health/vectors'),
     getServiceHealth: () => omegaClient.get<ServiceHealth>('/health'),
+    getStats: () => omegaClient.get<OmegaStats>('/capture/stats'),
     controlService: (serviceName: string, action: 'start' | 'stop' | 'restart') => 
         omegaClient.post<{status: string, pid?: number}>('/system/service', { service_name: serviceName, action })
 };
@@ -199,7 +216,7 @@ export interface IngestResponse {
 export interface GraphNode {
   id: string;
   label: string;
-  type: string;
+  type?: string;
   description?: string;
 }
 
@@ -207,6 +224,7 @@ export interface GraphEdge {
   source: string;
   target: string;
   relationship: string;
+  type?: string;
 }
 
 export interface ParseResponse {
@@ -229,6 +247,7 @@ export const ingestApi = {
     // Health & Queue
     getQueueStatus: () => ingestClient.get<QueueStatus>('/ingest/queue'),
     getServiceHealth: () => ingestClient.get<ServiceHealth>('/health'), // Basic health check
+    getStats: () => ingestClient.get<IngestStats>('/ingest/stats'),
 
     // Ingestion Methods
     ingestText: (text: string) => ingestClient.post<IngestResponse>('/ingest/text', {
@@ -267,13 +286,8 @@ export interface MemosStats {
 }
 
 export const memosApi = {
-    // Memos API (Mocked until FastMCP supports HTTP endpoints or proxy is established)
-    getStats: () => Promise.resolve({
-      total_memories: 0,
-      by_agent: {},
-      by_tier: { semantic: 0, procedural: 0 },
-      vector_dimension: 1024
-    }),
+    // Memos API - now uses real endpoints
+    getStats: () => memosClient.get<MemosStats>('/stats'),
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     search: (_query: string) => Promise.resolve({ results: [] }),
     getScratchpad: () => Promise.resolve({ content: "Scratchpad unavailable (MCP native mode)" }),

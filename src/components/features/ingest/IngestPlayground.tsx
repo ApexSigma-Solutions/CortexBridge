@@ -4,12 +4,14 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { ParseResponse } from '@/lib/api/client';
 import { useToastStore } from '@/lib/store/useToastStore';
+import { IngestStatus } from './IngestStatus';
 
 const InGestPlayground = () => {
   const { addToast } = useToastStore();
   const [file, setFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
-  const [model, setModel] = useState<string>('en_core_web_sm');
+  const [model, setModel] = useState<string>('en_core_web_trf');
+  const [extractionMode, setExtractionMode] = useState<string>('llm_inference');
   const [isLoading, setIsLoading] = useState(false);
   const [loadingTime, setLoadingTime] = useState(0);
   const [result, setResult] = useState<ParseResponse | null>(null);
@@ -29,7 +31,6 @@ const InGestPlayground = () => {
     setResult(null);
   };
 
-  // API Integration using FormData for file uploads
   // API Integration (Connecting to TNP-PAR-500 Backend)
   const handleParse = async () => {
     if (!file) {
@@ -53,15 +54,14 @@ const InGestPlayground = () => {
 
     try {
       // Construct FormData for file upload
-      // Content-Type is NOT set manually - browser sets it with multipart/form-data and boundary
       const formData = new FormData();
       formData.append('file', file);
       formData.append('model_name', model);
+      formData.append('extraction_mode', extractionMode);
 
-      // Direct fetch to /graph/parse/file endpoint (Update port to 8766 to match Ingest Service)
+      // Direct fetch to /graph/parse/file endpoint
       const response = await fetch('http://localhost:8766/graph/parse/file', {
         method: 'POST',
-        // Do NOT set Content-Type header - let browser set it with boundary for FormData
         body: formData,
         signal: controller.signal,
       });
@@ -73,7 +73,6 @@ const InGestPlayground = () => {
       }
 
       const data = await response.json();
-      // Adjust structure based on exact API wrapper
       const graphData = data.data || data; 
       setResult(graphData);
       addToast('Knowledge Digest Received', 'success');
@@ -97,6 +96,9 @@ const InGestPlayground = () => {
 
   return (
     <div className="space-y-6">
+      {/* Real-time Stats Integration */}
+      <IngestStatus />
+
       {/* Header Area */}
       <div className="flex items-center justify-between border-b border-border pb-4">
         <div>
@@ -165,6 +167,27 @@ const InGestPlayground = () => {
                       {model === 'en_core_web_trf' && "High memory usage. Best for complex entities."}
                       {model === 'en_core_web_md' && "Good balance of speed and accuracy."}
                       {model === 'en_core_web_sm' && "Instant results, basic extraction."}
+                  </p>
+              </div>
+              
+              {/* Extraction Mode selection */}
+              <div className="space-y-2 pt-2 border-t border-border/50">
+                  <label className="text-xs font-mono font-bold uppercase text-muted-foreground tracking-wider">Extraction Strategy</label>
+                  <select 
+                    value={extractionMode} 
+                    onChange={(e) => setExtractionMode(e.target.value)}
+                    className="w-full bg-card/50 border border-input rounded-md py-2 px-3 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  >
+                        <option value="llm_inference">LLM Inference (Deep Analysis)</option>
+                        <option value="hybrid">Hybrid (NER + SVO)</option>
+                        <option value="ner_only">Named Entities (Fast)</option>
+                        <option value="svo">Subject-Verb-Object (Legacy)</option>
+                  </select>
+                  <p className="text-[10px] text-muted-foreground italic">
+                      {extractionMode === 'llm_inference' && "Uses GPT-4o-mini logic for high-quality relationship mapping."}
+                      {extractionMode === 'hybrid' && "Combines recognized entities with implied relationships."}
+                      {extractionMode === 'ner_only' && "Focuses on Person, Organization, Location, and Work entities."}
+                      {extractionMode === 'svo' && "Extracts all noun-verb triples. High recall, lower precision."}
                   </p>
               </div>
 
@@ -264,7 +287,7 @@ const InGestPlayground = () => {
                           <span className="text-muted-foreground text-sm">{edge.target}</span>
                         </div>
                         <Badge variant="outline" className="text-xs self-start">
-                          {edge.relationship}
+                          {edge.relationship || edge.type}
                         </Badge>
                       </div>
                     ))}

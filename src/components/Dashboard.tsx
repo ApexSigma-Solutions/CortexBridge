@@ -2,10 +2,11 @@ import { useEffect } from 'react';
 import { Activity, CheckCircle2, XCircle, Clock, Play, Square, Cpu, Server, Database, Globe } from 'lucide-react';
 import { useSystemStore } from '@/lib/store/systemStore';
 import { healthPoller } from '@/lib/api/healthPoller';
-import { ApiHealth, captureApi } from '@/lib/api/client';
+import { ApiHealth, captureApi, ingestApi } from '@/lib/api/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { AuditLogViewer } from '@/components/features/AuditLogViewer';
+import { useAnalyticsStore } from '@/lib/store/useAnalyticsStore';
 
 import { AnalyticsWidgets } from '@/components/features/AnalyticsWidgets';
 import { LiveTerminal } from '@/components/widgets/LiveTerminal';
@@ -23,9 +24,37 @@ export function Dashboard() {
       setApiHealth(health);
     });
 
+    // Fetch initial stats and set up polling for metrics
+    const fetchStats = async () => {
+      try {
+        const [omegaStats, ingestStats] = await Promise.all([
+          captureApi.getStats().catch(() => null),
+          ingestApi.getStats().catch(() => null)
+        ]);
+
+        const metrics: Record<string, number> = {};
+        if (omegaStats) {
+          metrics.totalCaptures = omegaStats.total_captures;
+        }
+        if (ingestStats) {
+          metrics.totalIngestions = ingestStats.throughput_24h; 
+        }
+        
+        if (Object.keys(metrics).length > 0) {
+          useAnalyticsStore.getState().setMetrics(metrics);
+        }
+      } catch (err) {
+        console.error('Failed to fetch dashboard stats:', err);
+      }
+    };
+
+    fetchStats();
+    const statsInterval = window.setInterval(fetchStats, 30000); // Pulse every 30s
+
     return () => {
       unsubscribe();
       healthPoller.stop();
+      clearInterval(statsInterval);
     };
   }, [setApiHealth]);
 

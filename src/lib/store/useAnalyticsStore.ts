@@ -14,6 +14,7 @@ interface AnalyticsStore extends AnalyticsMetrics {
   incrementIngestions: () => void;
   incrementSearches: () => void;
   updateSessionTime: (minutes: number) => void;
+  setMetrics: (metrics: Partial<AnalyticsMetrics>) => void;
   resetMetrics: () => void;
 }
 
@@ -47,6 +48,11 @@ export const useAnalyticsStore = create<AnalyticsStore>()(
       updateSessionTime: (minutes) =>
         set((state) => ({
           activeSessionMinutes: state.activeSessionMinutes + minutes,
+        })),
+      setMetrics: (metrics) =>
+        set((state) => ({
+          ...state,
+          ...metrics,
         })),
       resetMetrics: () => set(defaultMetrics),
     }),
