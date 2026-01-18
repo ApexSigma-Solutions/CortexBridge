@@ -64,8 +64,8 @@ export function MemosSearch() {
         )}
         
         <div className="divide-y divide-border">
-          {results.map((result, idx) => (
-            <div key={idx} className="p-4 hover:bg-card/50 transition-colors">
+          {results.map((result) => (
+            <div key={result.id} className="p-4 hover:bg-card/50 transition-colors">
               <div className="flex items-start justify-between mb-2">
                  <Badge variant="outline" className="font-mono text-[10px]">
                     score: {result.similarity?.toFixed(3)}
