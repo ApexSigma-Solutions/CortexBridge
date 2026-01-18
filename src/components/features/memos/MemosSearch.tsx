@@ -80,7 +80,7 @@ export function MemosSearch() {
              {result.metadata && Object.keys(result.metadata).length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-1">
                     {Object.entries(result.metadata).map(([k, v]) => (
-                        <Badge key={`${result.id}-${k}`} variant="secondary" className="text-[10px]">
+                        <Badge key={k} variant="secondary" className="text-[10px]">
                             {k}: {String(v).slice(0, 20)}
                         </Badge>
                     ))}
