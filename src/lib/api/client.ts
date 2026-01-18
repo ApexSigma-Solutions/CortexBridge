@@ -179,6 +179,35 @@ export interface OmegaStats {
   active_sessions: number;
 }
 
+export interface LogSummaryStats {
+  service: string;
+  level: string;
+  count: number;
+}
+
+export interface CriticalError {
+  service: string;
+  message: string;
+  timestamp: string;
+  count: number;
+}
+
+export interface LogSummaryReport {
+  date: string;
+  generated_at: string;
+  monitoring_started: string;
+  stats: LogSummaryStats[];
+  critical_errors: CriticalError[];
+  warnings: string[];
+  suggested_actions: string[];
+}
+
+export interface LogSummaryResponse {
+  status: 'success' | 'error';
+  report?: LogSummaryReport;
+  message?: string;
+}
+
 export interface IngestStats {
   queue: QueueStatus;
   throughput_24h: number;
@@ -192,7 +221,10 @@ export interface CaptureApi {
     getVectorHealth: () => Promise<VectorHealth>;
     getServiceHealth: () => Promise<ServiceHealth>;
     getStats: () => Promise<OmegaStats>;
+    getLogSummary: () => Promise<LogSummaryResponse>;
     controlService: (serviceName: string, action: 'start' | 'stop' | 'restart') => Promise<{status: string, pid?: number}>;
+    shutdownEcosystem: (full?: boolean) => Promise<{status: string, message: string}>;
+    restartEcosystem: () => Promise<{status: string, message: string}>;
 }
 
 export const captureApi: CaptureApi = {
@@ -201,8 +233,12 @@ export const captureApi: CaptureApi = {
     getVectorHealth: () => omegaClient.get<VectorHealth>('/health/vectors'),
     getServiceHealth: () => omegaClient.get<ServiceHealth>('/health'),
     getStats: () => omegaClient.get<OmegaStats>('/capture/stats'),
+    getLogSummary: () => omegaClient.get<LogSummaryResponse>('/system/logs/summary'),
     controlService: (serviceName: string, action: 'start' | 'stop' | 'restart') => 
-        omegaClient.post<{status: string, pid?: number}>('/system/service', { service_name: serviceName, action })
+        omegaClient.post<{status: string, pid?: number}>('/system/service', { service_name: serviceName, action }),
+    shutdownEcosystem: (full: boolean = false) => 
+        omegaClient.post<{status: string, message: string}>(`/system/ecosystem/shutdown?full=${full}`, {}),
+    restartEcosystem: () => omegaClient.post<{status: string, message: string}>('/system/ecosystem/restart', {}),
 };
 
 export interface IngestResponse {
@@ -274,7 +310,7 @@ export const ingestApi = {
     }),
 
     // Graph Parser (TNP-PAR-500)
-    parseGraph: (text: string, config: Record<string, any> = {}) => 
+    parseGraph: (text: string, config: Record<string, unknown> = {}) => 
         graphParserClient.post<ParseResponse>('/graph/parse', { text, config }),
 };
 

@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Activity, CheckCircle2, XCircle, Clock, Play, Square, Cpu, Server, Database, Globe } from 'lucide-react';
+import { Activity, CheckCircle2, XCircle, Clock, Play, Square, Cpu, Server, Database, Globe, RotateCcw } from 'lucide-react';
 import { useSystemStore } from '@/lib/store/systemStore';
 import { healthPoller } from '@/lib/api/healthPoller';
 import { ApiHealth, captureApi, ingestApi } from '@/lib/api/client';
@@ -58,7 +58,7 @@ export function Dashboard() {
     };
   }, [setApiHealth]);
 
-  const handleControl = (name: string, action: 'start' | 'stop') => {
+  const handleControl = (name: string, action: 'start' | 'stop' | 'restart') => {
       // Cast to any to bypass generic build issues
       captureApi.controlService(name, action).then(() => healthPoller.checkNow());
   };
@@ -184,28 +184,40 @@ export function Dashboard() {
                     </div>
                   )}
                   
-                   <div className="flex gap-2 pt-2">
-                      {api.healthy ? (
-                          <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="flex-1 h-9 rounded-sm bg-destructive/10 border border-destructive/20 text-destructive hover:bg-destructive hover:text-white transition-all text-[10px] font-black uppercase tracking-[0.2em]" 
-                              onClick={() => handleControl(api.name, 'stop')} 
-                              disabled={api.name === 'Omega'}
-                          >
-                               <Square className="w-3 h-3 mr-2" fill="currentColor" /> Terminate
-                          </Button>
-                      ) : (
-                           <Button 
-                               variant="ghost" 
-                               size="sm" 
-                               className="flex-1 h-9 rounded-sm bg-teal-500/10 border border-teal-500/20 text-teal-500 hover:bg-teal-500 hover:text-white transition-all text-[10px] font-black uppercase tracking-[0.2em]" 
-                               onClick={() => handleControl(api.name, 'start')} 
-                               disabled={api.name === 'Omega'}
-                           >
-                                <Play className="w-3 h-3 mr-2" fill="currentColor" /> Initialize
-                           </Button>
-                      )}
+                  <div className="flex gap-2 pt-2">
+                    {api.healthy ? (
+                      <>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="flex-[2] h-9 rounded-sm bg-destructive/10 border border-destructive/20 text-destructive hover:bg-destructive hover:text-white transition-all text-[10px] font-black uppercase tracking-[0.2em]" 
+                          onClick={() => handleControl(api.name, 'stop')} 
+                          disabled={false}
+                        >
+                          <Square className="w-3 h-3 mr-2" fill="currentColor" /> Terminate
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="flex-1 h-9 rounded-sm bg-amber-500/10 border border-amber-500/20 text-amber-500 hover:bg-amber-500 hover:text-white transition-all text-[10px] font-black uppercase tracking-[0.2em]" 
+                          onClick={() => handleControl(api.name, 'restart')} 
+                          disabled={false}
+                          title="Restart Service"
+                        >
+                          <RotateCcw className="w-3 h-3" />
+                        </Button>
+                      </>
+                    ) : (
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="flex-1 h-9 rounded-sm bg-teal-500/10 border border-teal-500/20 text-teal-500 hover:bg-teal-500 hover:text-white transition-all text-[10px] font-black uppercase tracking-[0.2em]" 
+                        onClick={() => handleControl(api.name, 'start')} 
+                        disabled={false}
+                      >
+                        <Play className="w-3 h-3 mr-2" fill="currentColor" /> Initialize
+                      </Button>
+                    )}
                   </div>
                 </CardContent>
               </Card>

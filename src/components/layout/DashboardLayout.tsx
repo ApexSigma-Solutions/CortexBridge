@@ -10,12 +10,16 @@ import {
   Sun,
   Moon,
   LogOut,
-  Cpu
+  Cpu,
+  Power,
+  RotateCcw
 } from 'lucide-react';
 import { SystemHUD } from '@/components/common/SystemHUD';
 import { useSystemStore } from '@/lib/store/systemStore';
 import { useAuthStore } from '@/lib/store/useAuthStore';
 import { useSettingsStore } from '@/lib/store/useSettingsStore';
+import { useToastStore } from '@/lib/store/useToastStore';
+import { captureApi } from '@/lib/api/client';
 import { BackgroundPatterns, PatternType } from '@/components/ui/backgroundpatterns';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -36,6 +40,37 @@ const navigation = [
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const { sidebarCollapsed, toggleSidebar, systemStatus, theme, toggleTheme } = useSystemStore();
   const { user, logout } = useAuthStore();
+  const { addToast } = useToastStore();
+
+  const handleShutdown = async (e: React.MouseEvent) => {
+    const isFull = e.shiftKey;
+    const message = isFull 
+      ? 'EMERGENCY SHUTDOWN: Are you sure you want to stop EVERYTHING, including Docker databases?' 
+      : 'SAFE SHUTDOWN: Are you sure you want to stop all application services? (Databases will remain active)';
+
+    if (window.confirm(message)) {
+      try {
+        await captureApi.shutdownEcosystem(isFull);
+        addToast(`${isFull ? 'Full' : 'Safe'} shutdown initiated. Dashboard will disconnect soon.`, 'info');
+      } catch (err) {
+        console.error('Shutdown failed:', err);
+        addToast('Failed to trigger system shutdown', 'error');
+      }
+    }
+  };
+
+  const handleRestart = async () => {
+    if (window.confirm('Are you sure you want to RESTART the entire OmegaKG ecosystem? All applications will be stopped and restarted.')) {
+      try {
+        await captureApi.restartEcosystem();
+        addToast('Restart sequence initiated. Dashboard will disconnect briefly.', 'info');
+        // Optionally redirect to a "Restarting..." page or just let health checks fail and poller handle it
+      } catch (err) {
+        console.error('Restart failed:', err);
+        addToast('Failed to trigger system restart', 'error');
+      }
+    }
+  };
 
   // Use Zustand selectors to subscribe to specific settings for reactivity
   const currentPattern = useSettingsStore(
@@ -83,7 +118,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 <div className="absolute -top-1 -right-1 w-3 h-3 bg-teal-500 rounded-full shadow-[0_0_8px_rgba(0,191,166,0.8)] animate-pulse"></div>
               </div>
               <div className="flex flex-col">
-                <span className="text-foreground font-bold text-lg tracking-tight group-hover:text-teal-400 transition-colors pointer-events-none select-none italic tracking-tighter">APEX<span className="text-teal-500 font-black">SIGMA</span></span>
+                <span className="text-foreground font-bold text-lg group-hover:text-teal-400 transition-colors pointer-events-none select-none italic tracking-tighter">APEX<span className="text-teal-500 font-black">SIGMA</span></span>
                 <span className="text-[10px] text-teal-600/80 uppercase tracking-widest font-mono">Control Plane</span>
               </div>
             </div>
@@ -172,8 +207,27 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 <Button
                   variant="ghost"
                   size="icon"
+                  onClick={handleRestart}
+                  className="rounded-full hover:bg-amber-500/10 hover:text-amber-500 transition-colors"
+                  title="Restart Ecosystem"
+                >
+                  <RotateCcw size={18} />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleShutdown}
+                  className="rounded-full hover:bg-red-500/10 hover:text-red-500 transition-colors shadow-[0_0_10px_rgba(239,68,68,0)] hover:shadow-[0_0_15px_rgba(239,68,68,0.3)]"
+                  title="Shutdown Ecosystem (Shift+Click for FULL shutdown)"
+                >
+                  <Power size={18} />
+                </Button>
+                <div className="h-4 w-[1px] bg-border mx-1 self-center"></div>
+                <Button
+                  variant="ghost"
+                  size="icon"
                   onClick={toggleTheme}
-                  className="rounded-full hover:bg-teal-500/10 hover:text-teal-500 transition-colors"
+                  className="rounded-full hover:bg-teal-500/10 hover:text-teal-400 transition-colors"
                   title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
                 >
                   {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
