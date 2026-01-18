@@ -64,8 +64,8 @@ export function MemosSearch() {
         )}
         
         <div className="divide-y divide-border">
-          {results.map((result) => (
-            <div key={result.id} className="p-4 hover:bg-card/50 transition-colors">
+          {results.map((result, idx) => (
+            <div key={result.id ?? `result-${idx}`} className="p-4 hover:bg-card/50 transition-colors">
               <div className="flex items-start justify-between mb-2">
                  <Badge variant="outline" className="font-mono text-[10px]">
                     score: {result.similarity?.toFixed(3)}
@@ -80,7 +80,7 @@ export function MemosSearch() {
              {result.metadata && Object.keys(result.metadata).length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-1">
                     {Object.entries(result.metadata).map(([k, v]) => (
-                        <Badge key={k} variant="secondary" className="text-[10px]">
+                        <Badge key={`${result.id ?? `result-${idx}`}-${k}`} variant="secondary" className="text-[10px]">
                             {k}: {String(v).slice(0, 20)}
                         </Badge>
                     ))}
